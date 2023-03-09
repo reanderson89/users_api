@@ -2,7 +2,7 @@ import cgi, types
 from json import loads, dumps
 from copy import deepcopy
 from urllib import parse as urlparse
-
+from gevent import monkey; monkey.patch_all()
 from gevent.pywsgi import WSGIServer
 import gevent
 
@@ -85,9 +85,7 @@ def application(env, start_response):
 	# test
 	
 	if "users" in path:
-		print("hello world")
 		start_response('200 OK', [('Content-Type', 'text/html')])
-		# response = [b"<b>Hello World</b>"]
 		response = "Hello World"
 
 
@@ -99,10 +97,8 @@ def application(env, start_response):
 			'response': response #the output of the functions you call
 		}
 		start_response('200 OK', [('Content-Type', 'application/json')])
-		# encodedRet = dumps(ret).encode("utf-8")
-		# print(encodedRet)
 		print(dumps(ret).encode("utf-8"))
-		return [dumps(ret).encode("utf-8"), dumps(ret).encode("utf-8")]
+		return [dumps(ret).encode("utf-8")]
 
 	except Exception as inst:
 		print("line: 106", inst)
@@ -114,16 +110,3 @@ if __name__ == '__main__':
 	wsgi_port = 8888
 	print('serving on %s...' % wsgi_port)
 	WSGIServer(('', wsgi_port), application).serve_forever()
-
-
-
-# could still use
-	# first attempt at a GET request
-	# if method == 'GET':
-	# 	headers = [('Content-type', 'application/json')]
-	# 	start_response('200 ok', headers)
-	# 	ret.response = [dumps({'message': 'Hello, World!'}).encode()]
-	# else:
-	# 	headers = [('Content-type', 'application/json')]
-	# 	start_response('400 Bad Request', headers)
-	# 	ret.response = [dumps({'status': 'error', 'message': 'Invalid Request'}).encode()]
