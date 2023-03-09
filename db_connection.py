@@ -1,6 +1,6 @@
 # pip install mysql-connector-python
 import mysql.connector
-my_db = mysql.connector.connect(host="localhost", user="root", passwd="password")
+my_db = mysql.connector.connect(host="localhost", user="root", password="password")
 
 my_cursor = my_db.cursor()
 
