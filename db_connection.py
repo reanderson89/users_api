@@ -19,6 +19,16 @@ def select_all():
     result = my_cursor.fetchall()
     for row in result:
         print(row)
+    return result
+
+def create_user(args):
+    print("db: ",args)
+    insert_sql = "INSERT INTO user (pid, name) VALUES (%s, %s);"
+    user = [args["pid"], args["name"]]
+    my_cursor.execute(insert_sql, user)
+    # my_db.commit() is needed to save the changes made to the db
+    my_db.commit()
+
 
 # insert users into the table (CREATE)
 insert_sql = "INSERT INTO user (pid, name) VALUES (%s, %s);"

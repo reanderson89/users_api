@@ -5,7 +5,7 @@ from urllib import parse as urlparse
 from gevent import monkey; monkey.patch_all()
 from gevent.pywsgi import WSGIServer
 import gevent
-# from db_connection import select_all
+from db_connection import select_all, create_user
 
 # what did the types get updated to for python3
 def parseAndDelistArguments(args):
@@ -85,9 +85,14 @@ def application(env, start_response):
 	#now call the methods as needed
 	# test
 	
-	if "users" in path:
+	if "users" in path and method == "GET":
 		start_response('200 OK', [('Content-Type', 'text/html')])
-		response = "Hello World"
+		response = select_all()
+
+	if "users" in path and method == "POST":
+		start_response('200 OK', [('Content-Type', 'text/html')])
+		response = create_user(args)
+		
 
 
 	try:
