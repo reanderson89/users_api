@@ -43,3 +43,5 @@ my_cursor.execute(delete_sql)
 my_db.commit()
 print("deleted a user")
 select_all()
+
+

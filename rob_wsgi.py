@@ -5,6 +5,7 @@ from urllib import parse as urlparse
 from gevent import monkey; monkey.patch_all()
 from gevent.pywsgi import WSGIServer
 import gevent
+# from db_connection import select_all
 
 # what did the types get updated to for python3
 def parseAndDelistArguments(args):
