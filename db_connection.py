@@ -26,6 +26,22 @@ CREATE TABLE `user` (
 """
 )
 
+insert_sql = """
+INSERT INTO user (uuid, username, name, email, sms)
+VALUES(%s, %s, %s, %s, %s);
+"""
+users = [
+    (1, "reanderson89", "Robert", "reanderson89@gmail.com", "5039279423"),
+    (2, "estauder90", "Elsa", "staudere@gmail.com", "5039613187"),
+    (3, "appaKnowHow", "Appa", "missKnowHow@gmail.com", "5039279424"),
+    (4, "gooseyGirl", "Goose", "gooser@gmail.com", "5039613188"),
+]
+my_cursor.executemany(insert_sql, users)
+# my_db.commit() is needed to save the changes made to the db
+my_db.commit()
+print("initial data added")
+
+
 def check_user_exists(uuid):
     sql = "SELECT uuid FROM user WHERE uuid=%s"
     my_cursor.execute(sql, [uuid])
@@ -34,6 +50,25 @@ def check_user_exists(uuid):
         return True
     else:
         return False
+    
+def check_email_exists(email):
+    sql = "SELECT email FROM user WHERE email=%s"
+    my_cursor.execute(sql, [email])
+    result = my_cursor.fetchone()
+    if result != None:
+        return True
+    else:
+        return False
+    
+def check_sms_exists(sms):
+    sql = "SELECT sms FROM user WHERE sms=%s"
+    my_cursor.execute(sql, [sms])
+    result = my_cursor.fetchone()
+    if result != None:
+        return True
+    else:
+        return False
+    
 
 # GET all users
 def select_all():
@@ -70,6 +105,10 @@ def select_one_user(uuid):
 
 # POST a user to the database, need to figure out how to create the UUID. Check for built-in python methods.
 def create_user(args):
+    if check_email_exists(args["email"]):
+        return "That email address is already in use"
+    if check_sms_exists(args["sms"]):
+        return "That phone number is already in use"
     insert_sql = "INSERT INTO user (uuid, username, name, email, sms) VALUES (%s, %s, %s, %s, %s);"
     user = [args["uuid"], args["username"], args["name"], args["email"], args["sms"]]
     my_cursor.execute(insert_sql, user)
@@ -80,11 +119,18 @@ def create_user(args):
 
 # PUT, update a user in the database. Start by finding the user and getting their information to check against the incoming information.
 def update_user(args, uuid):
-    if check_user_exists(uuid):
-        incoming_user_data = args
+    if check_user_exists(uuid): 
         user_to_update = select_one_user(uuid)[0]
+        email_exists = check_email_exists(args["email"])
+        sms_exists = check_sms_exists(args["sms"])
+        # the below condition checks for existence, and then checks if it is assigned to the user being updated. If it exists, but is not assigned to the user being updated then it sends a return statement letting the user know it is already in use.
+        if email_exists and args["email"] != user_to_update["email"]:
+            return "That email address is already in use"
+        if sms_exists and args["sms"] != user_to_update["sms"]:
+            return "That phone number is already in use"
+        
+        incoming_user_data = args
         print("User before updates: ", user_to_update)
-        # min = a if a < b else b
         user_to_update["username"] = incoming_user_data["username"] if user_to_update["username"] != incoming_user_data["username"] else user_to_update["username"]
         user_to_update["name"] = incoming_user_data["name"] if user_to_update["name"] != incoming_user_data["name"] else user_to_update["name"]
         user_to_update["email"] = incoming_user_data["email"] if user_to_update["email"] != incoming_user_data["email"] else user_to_update["email"]
@@ -111,40 +157,6 @@ def delete_user(uuid):
 
 # TO DO:
 # Figure out how to make the UUID
-# Refactor the select_one_user from finding by email to finding by UUID
-# Create the PUT route to update a user
-# Create the DELETE route to delete a user
 
 
-# insert users into the table (CREATE)
-insert_sql = """
-INSERT INTO user (uuid, username, name, email, sms)
-VALUES(%s, %s, %s, %s, %s);
-"""
-users = [
-    (1, "reanderson89", "Robert", "reanderson89@gmail.com", "5039279423"),
-    (2, "estauder90", "Elsa", "staudere@gmail.com", "5039613187"),
-    (3, "appaKnowHow", "Appa", "missKnowHow@gmail.com", "5039279424"),
-    (4, "gooseyGirl", "Goose", "gooser@gmail.com", "5039613188"),
-    (5, "stranger danger", "stranger", "danger@gmail.com", "1234567890"),
-]
-my_cursor.executemany(insert_sql, users)
-# my_db.commit() is needed to save the changes made to the db
-my_db.commit()
-print("new users added")
-select_all()
 
-# update information on a few users
-update_sql = "update user set name=%s where name=%s"
-users_to_update = [("Robbie", "Robert"), ("Elser", "Elsa")]
-my_cursor.executemany(update_sql, users_to_update)
-my_db.commit()
-print("updated users names")
-select_all()
-
-# delete a user
-delete_sql = "delete from user where name='stranger'"
-my_cursor.execute(delete_sql)
-my_db.commit()
-print("deleted a user")
-select_all()
