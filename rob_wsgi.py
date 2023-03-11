@@ -7,7 +7,7 @@ from gevent import monkey
 monkey.patch_all()
 from gevent.pywsgi import WSGIServer
 import gevent
-from db_connection import select_all, create_user
+from db_connection import select_all, create_user, select_one_user, update_user, delete_user
 
 
 # what did the types get updated to for python3
@@ -72,8 +72,10 @@ def application(env, start_response):
 
     # env variable, check it out in docs
     wsgi_input = env["wsgi.input"]
+    # print(wsgi_input.read())
 
-    if wsgi_input.content_length and method != "PUT":
+# I removed the "and method != "POST" from the below condition, because if it is a post the "args" are in byte type. If this causes errors later on look back to this edit.
+    if wsgi_input.content_length:
         post_env = env.copy()
         post_env["QUERY_STRING"] = ""
         form = cgi.FieldStorage(
@@ -87,18 +89,38 @@ def application(env, start_response):
     if method == "PUT":
         wsgi_input = wsgi_input.read()
         args.update(parseAndDelistArguments(wsgi_input))
+        print("ARGS", args)
 
     # now call the methods as needed
     # test
 
-    if "users" in path and method == "GET":
-        start_response("200 OK", [("Content-Type", "text/html")])
-        response = select_all()
+	# ROUTES
+    if "users" in path:
+        # GET routes
+        if len(path) == 1 and method == "GET":
+            start_response("200 OK", [("Content-Type", "text/html")])
+            response = select_all()
 
-    if "users" in path and method == "POST":
-        start_response("200 OK", [("Content-Type", "text/html")])
-        response = create_user(args)
+            
+        if len(path) == 2 and method == "GET":
+            start_response("200 OK", [("Content-Type", "text/html")])
+            response = select_one_user(path[1])
 
+        # POST routes
+        if method == "POST":
+            start_response("200 OK", [("Content-Type", "text/html")])
+            response = create_user(args)
+            
+        # PUT routes
+        if len(path) == 2 and method == "PUT":
+            start_response("200 OK", [("Content-Type", "text/html")])
+            response = update_user(args, path[1])
+ 
+        # DELETE routes
+        if len(path) == 2 and method == "DELETE":
+            start_response("200 OK", [("Content-Type", "text/html")])
+            response = delete_user(path[1])
+        
     try:
         ret = {
             "path": path,
@@ -113,7 +135,7 @@ def application(env, start_response):
     except Exception as inst:
         print("line: 106", inst)
         start_response("500 Internal Server Error", [("Content-Type", "text/plain")])
-        return repr(inst)
+        return [dumps(inst).encode("utf-8")]
 
 
 if __name__ == "__main__":
