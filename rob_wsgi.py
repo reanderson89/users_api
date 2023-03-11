@@ -7,7 +7,7 @@ from gevent import monkey
 monkey.patch_all()
 from gevent.pywsgi import WSGIServer
 import gevent
-from db_connection import select_all, create_user, select_one_user, update_user, delete_user
+from orm import select_all, create_user, select_one_user, update_user, delete_user
 
 
 # what did the types get updated to for python3
