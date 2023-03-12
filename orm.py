@@ -67,14 +67,14 @@ def select_one_user(uuid):
         }]
         return listResult
     else:
-        return "No user with uuid: "+uuid+" exists in the database"
+        return False
 
 # POST a user to the database, need to figure out how to create the UUID. Check for built-in python methods.
 def create_user(args):
     if check_email_exists(args["email"]):
-        return "That email address is already in use"
+        return "email"
     if check_sms_exists(args["sms"]):
-        return "That phone number is already in use"
+        return "phone"
     uuid = generate_uuid(args["email"])
     insert_sql = "INSERT INTO user (uuid, username, name, email, sms) VALUES (%s, %s, %s, %s, %s);"
     user = [uuid, args["username"], args["name"], args["email"], args["sms"]]
@@ -92,9 +92,9 @@ def update_user(args, uuid):
         sms_exists = check_sms_exists(args["sms"])
         # the below condition checks for existence, and then checks if it is assigned to the user being updated. If it exists, but is not assigned to the user being updated then it sends a return statement letting the user know it is already in use.
         if email_exists and args["email"] != user_to_update["email"]:
-            return "That email address is already in use"
+            return "email"
         if sms_exists and args["sms"] != user_to_update["sms"]:
-            return "That phone number is already in use"
+            return "phone"
         
         incoming_user_data = args
         print(incoming_user_data.keys())
@@ -111,7 +111,7 @@ def update_user(args, uuid):
         user_from_db = select_one_user(user_to_update["uuid"])
         return user_from_db
     else:
-        return "No user with uuid: "+uuid+" exists in the database"
+        return False
 
 def delete_user(uuid):
     if check_user_exists(uuid):
@@ -121,7 +121,7 @@ def delete_user(uuid):
         message = "User with uuid: "+uuid+" has been deleted."
         return message
     else:
-        return "There is no current user with uuid: "+uuid+" in the database."
+        return False
 
 
 # TO DO:

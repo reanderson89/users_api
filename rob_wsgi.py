@@ -3,11 +3,11 @@ from json import loads, dumps
 from copy import deepcopy
 from urllib import parse as urlparse
 from gevent import monkey
+from gevent.pywsgi import WSGIServer
+from orm import select_all, create_user, select_one_user, update_user, delete_user
 
 monkey.patch_all()
-from gevent.pywsgi import WSGIServer
-import gevent
-from orm import select_all, create_user, select_one_user, update_user, delete_user
+
 
 
 # what did the types get updated to for python3
@@ -96,52 +96,94 @@ def application(env, start_response):
 
     # now call the methods as needed
 	# ROUTES
-
-    if "users" in path and len(path) <= 2:
-        # GET routes
-        if len(path) == 1 and method == "GET":
-            start_response("200 OK", [("Content-Type", "text/html")])
-            response = select_all()
-
-            
-        if len(path) == 2 and method == "GET":
-            start_response("200 OK", [("Content-Type", "text/html")])
-            response = select_one_user(path[1])
-
-        # POST routes
-        if method == "POST":
-            start_response("200 OK", [("Content-Type", "text/html")])
-            response = create_user(args)
-            
-        # PUT routes
-        if len(path) == 2 and method == "PUT":
-            start_response("200 OK", [("Content-Type", "text/html")])
-            response = update_user(args, path[1])
- 
-        # DELETE routes
-        if len(path) == 2 and method == "DELETE":
-            start_response("200 OK", [("Content-Type", "text/html")])
-            response = delete_user(path[1])
-
-        ret = {
-            "path": path,
-            "args": args,
-            "method": method,
-            "response": response,  # the output of the functions you call
-        }
-        start_response("200 OK", [("Content-Type", "application/json")])
+    ret = {
+        "status": "",
+        "path": path,
+        "args": args,
+        "method": method,
+        "response": "",  # the output of the functions you call
+    }
+    # GET routes
+    # get all users
+    if len(path) == 1 and method == "GET":
+        start_response("200 OK", [("Content-Type", "text/html")])
+        ret["status"] = "200 OK: The request was successful"
+        ret["response"] = select_all()
         return [dumps(ret).encode("utf-8")]
+    
+    # get one user 
+    elif len(path) == 2 and method == "GET":
+        response = select_one_user(path[1])
+        if response == False:
+            start_response("404 NOT FOUND", [("Content-Type", "text/html")])
+            ret["status"] = "404 Not Found: The requested resource does not exist."
+            ret["response"] = "User with uuid: "+path[1]+" does not exist"
+        else:
+            start_response("200 OK", [("Content-Type", "text/html")])
+            ret["status"] = "200 OK: The request was successful"
+            ret["response"] = response
+        return [dumps(ret).encode("utf-8")]
+
+    # POST routes
+    # create a user
+    elif len(path) == 1 and method == "POST":
+        response = create_user(args)
+        if response == "email":
+            start_response("409 CONFLICT", [("Content-Type", "text/html")])
+            ret["status"] = "409 Conflict: The request conflicts with the current state of the server."
+            ret["response"] = "A user with that email address already exists"
+        elif response == "phone":
+            start_response("409 CONFLICT", [("Content-Type", "text/html")])
+            ret["status"] = "409 Conflict: The request conflicts with the current state of the server."
+            ret["response"] = "A user with that phone number already exists" 
+        else:
+            start_response("201 CREATED", [("Content-Type", "text/html")])
+            ret["status"] = "201 CREATED: The user has been successfully created. "
+            ret["response"] = response
+        return [dumps(ret).encode("utf-8")]
+    
+    # PUT routes
+    # update a user
+    elif len(path) == 2 and method == "PUT":
+        response = update_user(args, path[1])
+        if response == "email":
+            start_response("409 CONFLICT", [("Content-Type", "text/html")])
+            ret["status"] = "409 Conflict: The request conflicts with the current state of the server."
+            ret["response"] = "A user with that email address already exists"
+        elif response == "phone":
+            start_response("409 CONFLICT", [("Content-Type", "text/html")])
+            ret["status"] = "409 Conflict: The request conflicts with the current state of the server."
+            ret["response"] = "A user with that phone number already exists" 
+        elif response == False:
+            start_response("404 NOT FOUND", [("Content-Type", "text/html")])
+            ret["status"] = "404 Not Found: The requested resource does not exist."
+            ret["response"] = "User with uuid: "+path[1]+" does not exist"          
+        else:
+            start_response("200 OK", [("Content-Type", "text/html")])
+            ret["status"] = "200 OK: The user was successfully updated"
+            ret["response"] = response
+        return [dumps(ret).encode("utf-8")]
+
+    # DELETE routes
+    # delete a user
+    elif len(path) == 2 and method == "DELETE":
+        response = delete_user(path[1])
+        if response == False:
+            start_response("404 NOT FOUND", [("Content-Type", "text/html")])
+            ret["status"] = "404 Not Found: The requested resource does not exist."
+            ret["response"] = "User with uuid: "+path[1]+" does not exist"
+        else:
+            start_response("200 OK", [("Content-Type", "text/html")])
+            ret["status"] = "200 OK: The request was successful and the user has been deleted."
+            ret["response"] = response
+        return [dumps(ret).encode("utf-8")]
+
+
     else:
-        response = "make sure that you have /v1.0/users/'userid' after the base URL to access the API, userid is needed if you want to find one specific user, delete a user, or update them."
-        ret = {
-            "path": path,
-            "args": args,
-            "method": method,
-            "response": response,  # the output of the functions you call
-        }
-        start_response("500 Internal Server Error", [("Content-Type", "application/json")])
+        ret["response"] = "Make sure that you have /v1.0/users/'userid' after the base URL to access the API. Userid is needed if you want to find one specific user, delete a user, or update them. If you are creating a user or trying to get all users you should just use /v1.0/users/ with the corresponding request method."
+        ret["status"] = "400 BAD REQUEST: The request was invalid or could not be understood by the server."
+        start_response("400 BAD REQUEST", [("Content-Type", "application/json")])
         return [dumps(ret).encode("utf-8")]
-
 
 
 if __name__ == "__main__":
