@@ -54,9 +54,12 @@ def application(env, start_response):
         return ""
 
     path = path.split("/")
+    for (i, value) in enumerate(path):
+        path[i] = value.strip()
+
     if len(path) < 2 or path[1] != "v1.0":
         start_response("500 Internal Server Error", [("Content-Type", "text/plain")])
-        return "invalid API version"
+        return ["invalid API version, try v1.0".encode("utf-8")]
 
     path = path[2:]
     if not path[-1]:
@@ -81,9 +84,9 @@ def application(env, start_response):
         form = cgi.FieldStorage(
             fp=env["wsgi.input"], environ=post_env, keep_blank_values=True
         )
-        # list comprehension: pythonic thing, a for statement that outputs a list. Takes in data and makes a list out of it.
-        form_data = [(k, form[k].value) for k in form.keys()]
-        # what does "update" do to a dictionary?
+        # list comprehension: A for loop that outputs a list. Takes in data and makes a list out of it. Added ".strip()" to the values to get rid of whitespace
+        form_data = [(k.strip(), form[k].value.strip()) for k in form.keys()]
+        # turns list into dictionary
         args.update(form_data)
 
     if method == "PUT":
@@ -92,10 +95,9 @@ def application(env, start_response):
         print("ARGS", args)
 
     # now call the methods as needed
-    # test
-
 	# ROUTES
-    if "users" in path:
+
+    if "users" in path and len(path) <= 2:
         # GET routes
         if len(path) == 1 and method == "GET":
             start_response("200 OK", [("Content-Type", "text/html")])
@@ -120,8 +122,7 @@ def application(env, start_response):
         if len(path) == 2 and method == "DELETE":
             start_response("200 OK", [("Content-Type", "text/html")])
             response = delete_user(path[1])
-        
-    try:
+
         ret = {
             "path": path,
             "args": args,
@@ -129,13 +130,18 @@ def application(env, start_response):
             "response": response,  # the output of the functions you call
         }
         start_response("200 OK", [("Content-Type", "application/json")])
-        print(dumps(ret).encode("utf-8"))
+        return [dumps(ret).encode("utf-8")]
+    else:
+        response = "make sure that you have /v1.0/users/'userid' after the base URL to access the API, userid is needed if you want to find one specific user, delete a user, or update them."
+        ret = {
+            "path": path,
+            "args": args,
+            "method": method,
+            "response": response,  # the output of the functions you call
+        }
+        start_response("500 Internal Server Error", [("Content-Type", "application/json")])
         return [dumps(ret).encode("utf-8")]
 
-    except Exception as inst:
-        print("line: 106", inst)
-        start_response("500 Internal Server Error", [("Content-Type", "text/plain")])
-        return [dumps(inst).encode("utf-8")]
 
 
 if __name__ == "__main__":

@@ -88,14 +88,16 @@ def update_user(args, uuid):
             return "That phone number is already in use"
         
         incoming_user_data = args
-        print("User before updates: ", user_to_update)
-        user_to_update["username"] = incoming_user_data["username"] if user_to_update["username"] != incoming_user_data["username"] else user_to_update["username"]
-        user_to_update["name"] = incoming_user_data["name"] if user_to_update["name"] != incoming_user_data["name"] else user_to_update["name"]
-        user_to_update["email"] = incoming_user_data["email"] if user_to_update["email"] != incoming_user_data["email"] else user_to_update["email"]
-        user_to_update["sms"] = incoming_user_data["sms"] if user_to_update["sms"] != incoming_user_data["sms"] else user_to_update["sms"]
+        print(incoming_user_data.keys())
+        fields_to_update = list(incoming_user_data.keys())
+        for field in fields_to_update:
+            if incoming_user_data[field] == "" or field == "uuid":
+                continue
+            user_to_update[field] = incoming_user_data[field]
+
         update_sql = "UPDATE user SET username=%s, name=%s, email=%s, sms=%s WHERE uuid=%s"
-        user = [user_to_update["username"], user_to_update["name"], user_to_update["email"], user_to_update["sms"], user_to_update["uuid"]]
-        my_cursor.execute(update_sql, user)
+        updated_user = [user_to_update["username"], user_to_update["name"], user_to_update["email"], user_to_update["sms"], uuid]
+        my_cursor.execute(update_sql, updated_user)
         my_db.commit()
         user_from_db = select_one_user(user_to_update["uuid"])
         return user_from_db
