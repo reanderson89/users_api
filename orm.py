@@ -1,4 +1,6 @@
 from db_connection import my_db, my_cursor
+import hashlib
+import uuid
 
 def check_user_exists(uuid):
     sql = "SELECT uuid FROM user WHERE uuid=%s"
@@ -27,6 +29,12 @@ def check_sms_exists(sms):
     else:
         return False
     
+def generate_uuid(email):
+    hash_object = hashlib.sha224(email.encode())
+    uuid_string = uuid.UUID(hash_object.hexdigest()[0:32])
+
+    return str(uuid_string)
+
 
 # GET all users
 def select_all():
@@ -67,12 +75,13 @@ def create_user(args):
         return "That email address is already in use"
     if check_sms_exists(args["sms"]):
         return "That phone number is already in use"
+    uuid = generate_uuid(args["email"])
     insert_sql = "INSERT INTO user (uuid, username, name, email, sms) VALUES (%s, %s, %s, %s, %s);"
-    user = [args["uuid"], args["username"], args["name"], args["email"], args["sms"]]
+    user = [uuid, args["username"], args["name"], args["email"], args["sms"]]
     my_cursor.execute(insert_sql, user)
     # my_db.commit() is needed to save the changes made to the db
     my_db.commit()
-    user_from_db = select_one_user(args["uuid"])
+    user_from_db = select_one_user(uuid)
     return user_from_db
 
 # PUT, update a user in the database. Start by finding the user and getting their information to check against the incoming information.
