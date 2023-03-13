@@ -1,1 +1,1 @@
-web: gunicorn 'users_api.wsgi'
+worker: python rob_wsgi.py
