@@ -1,6 +1,23 @@
-from db_connection import my_db, my_cursor
+import mysql.connector
 import hashlib
 import uuid
+import os
+
+# get database connection info from environment variables
+host = os.environ.get("DB_HOST")
+user = os.environ.get("DB_USER")
+password = os.environ.get("DB_PASSWORD") 
+database = os.environ.get("DATABASE")
+port = os.environ.get("DB_PORT")
+
+print("connecting to DB...")
+
+my_db = mysql.connector.connect(host=host, user=user, password=password, database=database, port=port)
+
+print(my_db)
+
+my_cursor = my_db.cursor()
+
 
 
 def check_user_exists(uuid):
