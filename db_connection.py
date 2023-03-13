@@ -47,7 +47,7 @@ users = [
 my_cursor.executemany(insert_sql, users)
 # my_db.commit() is needed to save the changes made to the db
 my_db.commit()
-print("initial data added")
+print("adding seed data...")
 
 
 
