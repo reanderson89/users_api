@@ -93,7 +93,6 @@ def application(env, start_response):
         print("ARGS", args)
 
     # now call the methods as needed
-    # ROUTES
     ret = {
         "status": "",
         "path": path,
@@ -101,6 +100,7 @@ def application(env, start_response):
         "method": method,
         "response": "",  # the output of the functions you call
     }
+    # ROUTES
     # GET routes
     # get all users
     if len(path) == 1 and method == "GET":
