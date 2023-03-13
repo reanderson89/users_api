@@ -1,6 +1,5 @@
-import cgi, types
+import cgi
 from json import loads, dumps
-from copy import deepcopy
 from urllib import parse as urlparse
 from gevent import monkey
 from gevent.pywsgi import WSGIServer
@@ -105,7 +104,7 @@ def application(env, start_response):
     # GET routes
     # get all users
     if len(path) == 1 and method == "GET":
-        start_response("200 OK", [("Content-Type", "text/html")])
+        start_response("200 OK", [("Content-Type", "application/json")])
         ret["status"] = "200 OK: The request was successful"
         ret["response"] = select_all()
         return [dumps(ret).encode("utf-8")]
@@ -114,11 +113,11 @@ def application(env, start_response):
     elif len(path) == 2 and method == "GET":
         response = select_one_user(path[1])
         if response == False:
-            start_response("404 NOT FOUND", [("Content-Type", "text/html")])
+            start_response("404 NOT FOUND", [("Content-Type", "application/json")])
             ret["status"] = "404 Not Found: The requested resource does not exist."
             ret["response"] = "User with uuid: " + path[1] + " does not exist"
         else:
-            start_response("200 OK", [("Content-Type", "text/html")])
+            start_response("200 OK", [("Content-Type", "application/json")])
             ret["status"] = "200 OK: The request was successful"
             ret["response"] = response
         return [dumps(ret).encode("utf-8")]
@@ -128,19 +127,19 @@ def application(env, start_response):
     elif len(path) == 1 and method == "POST":
         response = create_user(args)
         if response == "email":
-            start_response("409 CONFLICT", [("Content-Type", "text/html")])
+            start_response("409 CONFLICT", [("Content-Type", "application/json")])
             ret[
                 "status"
             ] = "409 Conflict: The request conflicts with the current state of the server."
             ret["response"] = "A user with that email address already exists"
         elif response == "phone":
-            start_response("409 CONFLICT", [("Content-Type", "text/html")])
+            start_response("409 CONFLICT", [("Content-Type", "application/json")])
             ret[
                 "status"
             ] = "409 Conflict: The request conflicts with the current state of the server."
             ret["response"] = "A user with that phone number already exists"
         else:
-            start_response("201 CREATED", [("Content-Type", "text/html")])
+            start_response("201 CREATED", [("Content-Type", "application/json")])
             ret["status"] = "201 CREATED: The user has been successfully created. "
             ret["response"] = response
         return [dumps(ret).encode("utf-8")]
@@ -150,23 +149,23 @@ def application(env, start_response):
     elif len(path) == 2 and method == "PUT":
         response = update_user(args, path[1])
         if response == "email":
-            start_response("409 CONFLICT", [("Content-Type", "text/html")])
+            start_response("409 CONFLICT", [("Content-Type", "application/json")])
             ret[
                 "status"
             ] = "409 Conflict: The request conflicts with the current state of the server."
             ret["response"] = "A user with that email address already exists"
         elif response == "phone":
-            start_response("409 CONFLICT", [("Content-Type", "text/html")])
+            start_response("409 CONFLICT", [("Content-Type", "application/json")])
             ret[
                 "status"
             ] = "409 Conflict: The request conflicts with the current state of the server."
             ret["response"] = "A user with that phone number already exists"
         elif response == False:
-            start_response("404 NOT FOUND", [("Content-Type", "text/html")])
+            start_response("404 NOT FOUND", [("Content-Type", "application/json")])
             ret["status"] = "404 Not Found: The requested resource does not exist."
             ret["response"] = "User with uuid: " + path[1] + " does not exist"
         else:
-            start_response("200 OK", [("Content-Type", "text/html")])
+            start_response("200 OK", [("Content-Type", "application/json")])
             ret["status"] = "200 OK: The user was successfully updated"
             ret["response"] = response
         return [dumps(ret).encode("utf-8")]
@@ -176,11 +175,11 @@ def application(env, start_response):
     elif len(path) == 2 and method == "DELETE":
         response = delete_user(path[1])
         if response == False:
-            start_response("404 NOT FOUND", [("Content-Type", "text/html")])
+            start_response("404 NOT FOUND", [("Content-Type", "application/json")])
             ret["status"] = "404 Not Found: The requested resource does not exist."
             ret["response"] = "User with uuid: " + path[1] + " does not exist"
         else:
-            start_response("200 OK", [("Content-Type", "text/html")])
+            start_response("200 OK", [("Content-Type", "application/json")])
             ret[
                 "status"
             ] = "200 OK: The request was successful and the user has been deleted."

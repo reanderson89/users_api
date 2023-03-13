@@ -1,7 +1,11 @@
-# pip install mysql-connector-python
 import mysql.connector
 import hashlib
 import uuid
+import os
+
+host = os.environ.get("LOCAL_DB_HOST")
+user = os.environ.get("LOCAL_DB_USER")
+password = os.environ.get("LOCAL_DB_PASSWORD") 
 
 my_db = mysql.connector.connect(host="localhost", user="root", password="password")
 
@@ -28,10 +32,6 @@ CREATE TABLE `user` (
 """
 )
 
-insert_sql = """
-INSERT INTO user (uuid, username, name, email, sms)
-VALUES(%s, %s, %s, %s, %s);
-"""
 
 
 def generate_uuid(email):
@@ -40,38 +40,44 @@ def generate_uuid(email):
 
     return str(uuid_string)
 
+def insert_dummy_data():
+    users = [
+        (
+            generate_uuid("reanderson89@gmail.com"),
+            "reanderson89",
+            "Robert",
+            "reanderson89@gmail.com",
+            "5039279423",
+        ),
+        (
+            generate_uuid("staudere@gmail.com"),
+            "estauder90",
+            "Elsa",
+            "staudere@gmail.com",
+            "5039613187",
+        ),
+        (
+            generate_uuid("missKnowHow@gmail.com"),
+            "appaKnowHow",
+            "Appa",
+            "missKnowHow@gmail.com",
+            "5039279424",
+        ),
+        (
+            generate_uuid("gooser@gmail.com"),
+            "gooseyGirl",
+            "Goose",
+            "gooser@gmail.com",
+            "5039613188",
+        ),
+    ]
+    insert_sql = """
+    INSERT INTO user (uuid, username, name, email, sms)
+    VALUES(%s, %s, %s, %s, %s);
+    """
+    my_cursor.executemany(insert_sql, users)
+    # my_db.commit() is needed to save the changes made to the db
+    my_db.commit()
+    print("adding seed data...")
 
-users = [
-    (
-        generate_uuid("reanderson89@gmail.com"),
-        "reanderson89",
-        "Robert",
-        "reanderson89@gmail.com",
-        "5039279423",
-    ),
-    (
-        generate_uuid("staudere@gmail.com"),
-        "estauder90",
-        "Elsa",
-        "staudere@gmail.com",
-        "5039613187",
-    ),
-    (
-        generate_uuid("missKnowHow@gmail.com"),
-        "appaKnowHow",
-        "Appa",
-        "missKnowHow@gmail.com",
-        "5039279424",
-    ),
-    (
-        generate_uuid("gooser@gmail.com"),
-        "gooseyGirl",
-        "Goose",
-        "gooser@gmail.com",
-        "5039613188",
-    ),
-]
-my_cursor.executemany(insert_sql, users)
-# my_db.commit() is needed to save the changes made to the db
-my_db.commit()
-print("adding seed data...")
+insert_dummy_data()
