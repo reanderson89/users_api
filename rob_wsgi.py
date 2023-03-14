@@ -42,15 +42,6 @@ def application(env, start_response):
     path = env["PATH_INFO"]
     print("_wsgi.path(initial):", path)
 
-    # if path == "/":
-    #     start_response("302 Moved Temporarily", [("Location", "http://blueboard.com")])
-    #     return ""
-
-    # if path == "/favicon.ico":
-    #     start_response(
-    #         "301 Moved Permanently", [("Location", "http://blueboard.com/favicon.ico")]
-    #     )
-    #     return ""
     if path[-1] != "/":
         path = path+"/"
     path = path.split("/")
