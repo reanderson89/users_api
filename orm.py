@@ -2,22 +2,6 @@ import hashlib
 import uuid
 from db_connection import my_db, get_cursor
 
-# # get database connection info from environment variables
-# host = os.environ.get("DB_HOST")
-# user = os.environ.get("DB_USER")
-# password = os.environ.get("DB_PASSWORD")
-# database = os.environ.get("DATABASE")
-# port = os.environ.get("DB_PORT")
-
-# print("connecting to DB...")
-
-# my_db = mysql.connector.connect(host=host, user=user, password=password, database=database, port=port)
-
-# if my_db.is_connected():
-#     print("connected to database")
-# else:
-#     print("connection to database was unsuccessful")
-
 
 def check_user_exists(uuid):
     with get_cursor() as cur:
@@ -66,7 +50,6 @@ def select_all():
         cur.execute("select uuid, username, name, email, sms from user;")
         # the fetchall() or fetchone() is going to fetch the information selected from the above query and store it on the result variable
         result = cur.fetchall()
-        print(result)
         list_result = [
             {
                 "uuid": row[0],
@@ -124,7 +107,7 @@ def create_user(args):
 def update_user(args, uuid):
     with get_cursor() as cur:
         if check_user_exists(uuid):
-            user_to_update = select_one_user(uuid)[0]
+            user_to_update = select_one_user(uuid)
             email_exists = check_email_exists(args["email"])
             sms_exists = check_sms_exists(args["sms"])
             # the below condition checks for existence, and then checks if it is assigned to the user being updated. If it exists, but is not assigned to the user being updated then it sends a return statement letting the user know it is already in use.
@@ -134,7 +117,6 @@ def update_user(args, uuid):
                 return "phone"
 
             incoming_user_data = args
-            print(incoming_user_data.keys())
             fields_to_update = list(incoming_user_data.keys())
             for field in fields_to_update:
                 if incoming_user_data[field] == "" or field == "uuid":
