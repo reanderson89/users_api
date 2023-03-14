@@ -200,6 +200,6 @@ def application(env, start_response):
 
 
 if __name__ == "__main__":
-    wsgi_port = os.environ.get("PORT")
+    wsgi_port = int(os.environ.get("PORT", 8888))
     print("serving on %s..." % wsgi_port)
     WSGIServer(("", wsgi_port), application).serve_forever()
