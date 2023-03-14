@@ -112,13 +112,17 @@ def update_user(args, uuid):
     with get_cursor(my_db) as cur:
         if check_user_exists(uuid, my_db):
             user_to_update = select_one_user(uuid)
-            email_exists = check_email_exists(args["email"], my_db)
-            sms_exists = check_sms_exists(args["sms"], my_db)
             # the below condition checks for existence, and then checks if it is assigned to the user being updated. If it exists, but is not assigned to the user being updated then it sends a return statement letting the user know it is already in use.
-            if email_exists and args["email"] != user_to_update["email"]:
-                return "email"
-            if sms_exists and args["sms"] != user_to_update["sms"]:
-                return "phone"
+            if "email" in args.keys():
+                email_exists = check_email_exists(args["email"], my_db)
+                if email_exists and args["email"] != user_to_update["email"]:
+                    return "email"
+            
+            if "sms" in args.keys():
+                sms_exists = check_sms_exists(args["sms"], my_db)
+                if sms_exists and args["sms"] != user_to_update["sms"]:
+                    return "phone"
+            
 
             incoming_user_data = args
             fields_to_update = list(incoming_user_data.keys())
