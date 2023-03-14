@@ -12,14 +12,21 @@ db_port = os.environ.get("DB_PORT")
 
 print("connecting to DB...")
 
-my_db = mysql.connector.connect(host=host, user=user, password=password, database=database, port=db_port)
+my_db = {"connection":mysql.connector.connect(host=host, user=user, password=password, database=database, port=db_port)}
 
-if my_db.is_connected():
-    print("connected to database")
-else:
-    print("connection to database was unsuccessful")
+print("connected to database")
 
-def get_cursor():
+# prevents database disconnection from api
+def check_connection():
+    if not my_db["connection"].is_connected():
+        print("re-establishing database connection")
+        my_db["connection"] = mysql.connector.connect(host=host, user=user, password=password, database=database, port=db_port)
+        print("connected to database")
+        return my_db["connection"]
+    else:
+        return my_db["connection"]
+
+def get_cursor(my_db):
     return my_db.cursor()
 
 # The below code is for working locally and having a fresh database and dummy data each time you run the application
