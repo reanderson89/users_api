@@ -2,22 +2,6 @@ import hashlib
 import uuid
 from db_connection import check_connection, get_cursor
 
-# # get database connection info from environment variables
-# host = os.environ.get("DB_HOST")
-# user = os.environ.get("DB_USER")
-# password = os.environ.get("DB_PASSWORD")
-# database = os.environ.get("DATABASE")
-# port = os.environ.get("DB_PORT")
-
-# print("connecting to DB...")
-
-# my_db = mysql.connector.connect(host=host, user=user, password=password, database=database, port=port)
-
-# if my_db.is_connected():
-#     print("connected to database")
-# else:
-#     print("connection to database was unsuccessful")
-
 
 def check_user_exists(uuid, my_db):
     with get_cursor(my_db) as cur:
@@ -67,7 +51,6 @@ def select_all():
         cur.execute("select uuid, username, name, email, sms from user;")
         # the fetchall() or fetchone() is going to fetch the information selected from the above query and store it on the result variable
         result = cur.fetchall()
-        print(result)
         list_result = [
             {
                 "uuid": row[0],

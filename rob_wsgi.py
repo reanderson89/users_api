@@ -12,7 +12,6 @@ monkey.patch_all()
 
 # what did the types get updated to for python3
 def parseAndDelistArguments(args):
-    print("Line 11: ", type(args))
     # checking if type of args is string or unicode, and that the first character is a curly brace or square bracket
     if type(args) == str and args[:1] in ["{", "["]:
         args = loads(args)
@@ -43,23 +42,16 @@ def application(env, start_response):
     path = env["PATH_INFO"]
     print("_wsgi.path(initial):", path)
 
-    if path == "/":
-        start_response("302 Moved Temporarily", [("Location", "http://blueboard.com")])
-        return ""
-
-    if path == "/favicon.ico":
-        start_response(
-            "301 Moved Permanently", [("Location", "http://blueboard.com/favicon.ico")]
-        )
-        return ""
-
+    if path[-1] != "/":
+        path = path+"/"
     path = path.split("/")
     for i, value in enumerate(path):
         path[i] = value.strip()
 
     if len(path) < 2 or path[1] != "v1.0":
-        start_response("500 Internal Server Error", [("Content-Type", "text/plain")])
-        return ["invalid API version, try v1.0".encode("utf-8")]
+        start_response("404 Bad Request", [("Content-Type", "application/json")])
+        res = {"response": "invalid API version, try v1.0, ex: <baseURL>/v1.0"}
+        return [dumps(res).encode("utf-8")]
 
     path = path[2:]
     if not path[-1]:
@@ -71,11 +63,9 @@ def application(env, start_response):
 
     print(env["QUERY_STRING"])
     args = parseAndDelistArguments(env["QUERY_STRING"])
-    print("args: 63 ", args)
 
     # env variable, check it out in docs
     wsgi_input = env["wsgi.input"]
-    # print(wsgi_input.read())
 
     # I removed the "and method != "POST" from the below condition, because if it is a post the "args" are in byte type. If this causes errors later on look back to this edit.
     if wsgi_input.content_length:
@@ -92,7 +82,6 @@ def application(env, start_response):
     if method == "PUT":
         wsgi_input = wsgi_input.read()
         args.update(parseAndDelistArguments(wsgi_input))
-        print("ARGS", args)
 
     # now call the methods as needed
     ret = {
