@@ -121,7 +121,6 @@ def update_user(args, uuid):
                 return "phone"
 
             incoming_user_data = args
-            print("Fields to update: ",incoming_user_data.keys())
             fields_to_update = list(incoming_user_data.keys())
             for field in fields_to_update:
                 if incoming_user_data[field] == "" or field == "uuid":
