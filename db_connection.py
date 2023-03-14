@@ -8,11 +8,11 @@ host = os.environ.get("DB_HOST")
 user = os.environ.get("DB_USER")
 password = os.environ.get("DB_PASSWORD") 
 database = os.environ.get("DATABASE")
-port = os.environ.get("DB_PORT")
+db_port = os.environ.get("DB_PORT")
 
 print("connecting to DB...")
 
-my_db = mysql.connector.connect(host=host, user=user, password=password, database=database, port=port)
+my_db = mysql.connector.connect(host=host, user=user, password=password, database=database, port=db_port)
 
 if my_db.is_connected():
     print("connected to database")

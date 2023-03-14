@@ -4,6 +4,8 @@ from urllib import parse as urlparse
 from gevent import monkey
 from gevent.pywsgi import WSGIServer
 from orm import select_all, create_user, select_one_user, update_user, delete_user
+import os
+
 
 monkey.patch_all()
 
@@ -198,6 +200,6 @@ def application(env, start_response):
 
 
 if __name__ == "__main__":
-    wsgi_port = 8888
+    wsgi_port = os.environ.get("PORT")
     print("serving on %s..." % wsgi_port)
     WSGIServer(("", wsgi_port), application).serve_forever()
