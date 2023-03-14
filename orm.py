@@ -1,10 +1,10 @@
 import hashlib
 import uuid
-from db_connection import my_db, get_cursor
+from db_connection import check_connection, get_cursor
 
 
-def check_user_exists(uuid):
-    with get_cursor() as cur:
+def check_user_exists(uuid, my_db):
+    with get_cursor(my_db) as cur:
         sql = "SELECT uuid FROM user WHERE uuid=%s"
         cur.execute(sql, [uuid])
         result = cur.fetchone()
@@ -14,8 +14,8 @@ def check_user_exists(uuid):
             return False
 
 
-def check_email_exists(email):
-    with get_cursor() as cur:
+def check_email_exists(email, my_db):
+    with get_cursor(my_db) as cur:
         sql = "SELECT email FROM user WHERE email=%s"
         cur.execute(sql, [email])
         result = cur.fetchone()
@@ -25,8 +25,8 @@ def check_email_exists(email):
             return False
 
 
-def check_sms_exists(sms):
-    with get_cursor() as cur:
+def check_sms_exists(sms, my_db):
+    with get_cursor(my_db) as cur:
         sql = "SELECT sms FROM user WHERE sms=%s"
         cur.execute(sql, [sms])
         result = cur.fetchone()
@@ -45,7 +45,8 @@ def generate_uuid(email):
 
 # GET all users
 def select_all():
-    with get_cursor() as cur:
+    my_db = check_connection()
+    with get_cursor(my_db) as cur:
         # select all users from the table (READ)
         cur.execute("select uuid, username, name, email, sms from user;")
         # the fetchall() or fetchone() is going to fetch the information selected from the above query and store it on the result variable
@@ -66,8 +67,9 @@ def select_all():
 
 # GET one user by email, need to refactor to find by UUID
 def select_one_user(uuid):
-    with get_cursor() as cur:
-        if check_user_exists(uuid):
+    my_db = check_connection()
+    with get_cursor(my_db) as cur:
+        if check_user_exists(uuid, my_db):
             cur.execute(
                 "select uuid, username, name, email, sms from user where uuid=%s",
                 [uuid],
@@ -88,10 +90,11 @@ def select_one_user(uuid):
 
 # POST a user to the database, need to figure out how to create the UUID. Check for built-in python methods.
 def create_user(args):
-    with get_cursor() as cur:
-        if check_email_exists(args["email"]):
+    my_db = check_connection()
+    with get_cursor(my_db) as cur:
+        if check_email_exists(args["email"], my_db):
             return "email"
-        if check_sms_exists(args["sms"]):
+        if check_sms_exists(args["sms"], my_db):
             return "phone"
         uuid = generate_uuid(args["email"])
         insert_sql = "INSERT INTO user (uuid, username, name, email, sms) VALUES (%s, %s, %s, %s, %s);"
@@ -105,11 +108,12 @@ def create_user(args):
 
 # PUT, update a user in the database. Start by finding the user and getting their information to check against the incoming information.
 def update_user(args, uuid):
-    with get_cursor() as cur:
-        if check_user_exists(uuid):
+    my_db = check_connection()
+    with get_cursor(my_db) as cur:
+        if check_user_exists(uuid, my_db):
             user_to_update = select_one_user(uuid)
-            email_exists = check_email_exists(args["email"])
-            sms_exists = check_sms_exists(args["sms"])
+            email_exists = check_email_exists(args["email"], my_db)
+            sms_exists = check_sms_exists(args["sms"], my_db)
             # the below condition checks for existence, and then checks if it is assigned to the user being updated. If it exists, but is not assigned to the user being updated then it sends a return statement letting the user know it is already in use.
             if email_exists and args["email"] != user_to_update["email"]:
                 return "email"
@@ -142,8 +146,9 @@ def update_user(args, uuid):
 
 
 def delete_user(uuid):
-    with get_cursor() as cur:
-        if check_user_exists(uuid):
+    my_db = check_connection()
+    with get_cursor(my_db) as cur:
+        if check_user_exists(uuid, my_db):
             delete_sql = "delete from user where uuid=%s"
             cur.execute(delete_sql, [uuid])
             my_db.commit()
@@ -153,5 +158,3 @@ def delete_user(uuid):
             return False
 
 
-# TO DO:
-# Figure out how to make the UUID
